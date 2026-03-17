@@ -1,115 +1,89 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import dynamic from "next/dynamic";
-import { US_STATES } from "@/config/constants";
-import { buildMetadata, jsonLdSoftwareApp, jsonLdWebPage } from "@/lib/seo";
+import { buildMetadata, jsonLdFaqPage, jsonLdSoftwareApp, jsonLdWebPage } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
-import usaTaxData from "@/data/tax/usa.json";
-import type { UsTaxData } from "@/types/tax.types";
 import { DisclaimerNotice } from "@/components/DisclaimerNotice";
+import { US_STATES } from "@/config/constants";
+import { SalaryAfterTaxOverviewTool } from "./components/SalaryAfterTaxOverviewTool";
 
-const SalaryAfterTaxClient = dynamic(() => import("./components/SalaryAfterTaxClient").then((m) => m.SalaryAfterTaxClient), {
-  ssr: false,
-  loading: () => <div className="card p-6">Loading calculator…</div>
+export const metadata = buildMetadata({
+  title: "Salary After Tax Calculator (USA by State)",
+  description:
+    "Estimate take-home pay (net income) after federal payroll taxes and a simplified state income tax model. Browse all 50 state pages.",
+  pathname: "/salary-after-tax"
 });
 
-export function generateStaticParams() {
-  return US_STATES.map((s) => ({ state: s.code.toLowerCase() }));
-}
-
-function getState(stateParam: string) {
-  const code = stateParam.toUpperCase();
-  const state = US_STATES.find((s) => s.code === code);
-  if (!state) return null;
-  return state;
-}
-
-function stateIntro(stateCode: string, stateName: string) {
-  const data = usaTaxData as unknown as UsTaxData;
-  const entry = data.state.rates[stateCode];
-  const model =
-    entry?.type === "none"
-      ? `${stateName} has no state income tax in this simplified model, so take-home pay is mostly driven by federal and payroll taxes.`
-      : `${stateName} is modeled with a simplified flat state income tax rate in addition to federal and payroll taxes.`;
-
-  return `${model} Use this page to sanity-check net pay, compare scenarios, and understand what drives your effective tax rate.`;
-}
-
-export function generateMetadata({ params }: { params: { state: string } }) {
-  const state = getState(params.state);
-  if (!state) return {};
-  return buildMetadata({
-    title: `Salary After Tax Calculator: ${state.name} (${state.code})`,
-    description: stateIntro(state.code, state.name).slice(0, 155),
-    pathname: `/salary-after-tax/${state.code.toLowerCase()}`
-  });
-}
-
-export default function SalaryAfterTaxStatePage({ params }: { params: { state: string } }) {
-  const state = getState(params.state);
-  if (!state) return notFound();
-
-  const jsonLd = [
-    jsonLdWebPage({
-      name: `Salary After Tax: ${state.name}`,
-      description: `Estimate take-home pay in ${state.name} using a fast, educational tax model.`,
-      pathname: `/salary-after-tax/${state.code.toLowerCase()}`
-    }),
-    jsonLdSoftwareApp({
-      name: `Salary After Tax Calculator (${state.code})`,
-      description: `Estimate net income after taxes for ${state.name}.`,
-      pathname: `/salary-after-tax/${state.code.toLowerCase()}`,
-      applicationCategory: "FinanceApplication"
-    })
+export default function SalaryAfterTaxIndexPage() {
+  const faq = [
+    {
+      question: "Why are there separate pages per state?",
+      answer:
+        "Each state page uses the state’s tax model from our dataset and includes unique intro content and internal links for easy comparison."
+    },
+    {
+      question: "Is this a full payroll calculator?",
+      answer:
+        "No. This tool provides an annualized estimate using simplified assumptions. Real net pay depends on pay frequency, deductions, benefits, and withholding elections."
+    }
   ];
-
-  const neighbors = (() => {
-    const idx = US_STATES.findIndex((s) => s.code === state.code);
-    const prev = US_STATES[(idx - 1 + US_STATES.length) % US_STATES.length];
-    const next = US_STATES[(idx + 1) % US_STATES.length];
-    return { prev, next };
-  })();
 
   return (
     <>
-      <JsonLd data={jsonLd} />
+      <JsonLd
+        data={[
+          jsonLdWebPage({
+            name: "Salary After Tax (USA by State)",
+            description: "State-by-state salary after tax pages with structured data and internal navigation.",
+            pathname: "/salary-after-tax"
+          }),
+          jsonLdSoftwareApp({
+            name: "Salary After Tax Calculator (USA)",
+            description: "Estimate take-home pay with federal + payroll + simplified state income tax model.",
+            pathname: "/salary-after-tax",
+            applicationCategory: "FinanceApplication"
+          }),
+          jsonLdFaqPage({ items: faq })
+        ]}
+      />
 
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-          Salary After Tax in {state.name} ({state.code})
-        </h1>
-        <p className="text-slate-700">{stateIntro(state.code, state.name)}</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Salary After Tax (USA)</h1>
+        <p className="text-slate-700">
+          Choose a state to view a dedicated, SEO-optimized page with a take-home pay estimate. This is an educational
+          estimate — always verify against official tax guidance and your pay stub.
+        </p>
       </header>
 
       <div className="mt-6 space-y-6">
         <DisclaimerNotice />
-        <SalaryAfterTaxClient stateCode={state.code} stateName={state.name} />
+        <SalaryAfterTaxOverviewTool />
       </div>
 
       <section className="mt-10 card p-6">
-        <h2 className="text-lg font-semibold text-slate-900">Explore other states</h2>
-        <p className="mt-1 text-sm text-slate-600">Internal links help discovery and let users compare scenarios.</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link
-            href={`/salary-after-tax/${neighbors.prev.code.toLowerCase()}`}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 no-underline hover:bg-slate-50"
-          >
-            ← {neighbors.prev.name}
-          </Link>
-          <Link
-            href={`/salary-after-tax/${neighbors.next.code.toLowerCase()}`}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 no-underline hover:bg-slate-50"
-          >
-            {neighbors.next.name} →
-          </Link>
-          <Link
-            href="/salary-after-tax"
-            className="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-brand-700"
-          >
-            All states
-          </Link>
+        <h2 className="text-lg font-semibold text-slate-900">All states</h2>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {US_STATES.map((s) => (
+            <Link
+              key={s.code}
+              href={`/salary-after-tax/${s.code.toLowerCase()}`}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-medium text-slate-800 no-underline hover:bg-slate-50"
+            >
+              {s.name} ({s.code})
+            </Link>
+          ))}
         </div>
       </section>
+
+      <article className="prose prose-slate mt-12 max-w-none">
+        <h2>FAQs</h2>
+        <dl>
+          {faq.map((f) => (
+            <div key={f.question} className="not-prose mt-4 rounded-2xl border border-slate-200 p-4">
+              <dt className="font-semibold text-slate-900">{f.question}</dt>
+              <dd className="mt-2 text-slate-700">{f.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </article>
     </>
   );
 }
