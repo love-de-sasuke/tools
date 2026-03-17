@@ -13,7 +13,7 @@ const TaxInputSchema = z.object({
 const data: UsTaxData = usaTaxData as unknown as UsTaxData;
 
 function progressiveTax(taxableIncome: Decimal, brackets: { upTo: number | null; rate: number }[]): Decimal {
-  let remaining = Decimal.max(taxableIncome, new Decimal(0));
+  let remaining = taxableIncome.max(0);
   let lastCap = new Decimal(0);
   let tax = new Decimal(0);
 
@@ -21,7 +21,7 @@ function progressiveTax(taxableIncome: Decimal, brackets: { upTo: number | null;
     if (remaining.lte(0)) break;
     const cap = b.upTo == null ? null : new Decimal(b.upTo);
     const rate = new Decimal(b.rate);
-    const slice = cap == null ? remaining : Decimal.min(remaining, Decimal.max(cap.sub(lastCap), new Decimal(0)));
+
     const slice = cap == null ? remaining : Decimal.min(remaining, cap.sub(lastCap).max(0));
     tax = tax.add(slice.mul(rate));
     remaining = remaining.sub(slice);
@@ -52,11 +52,10 @@ export function calculateSalaryAfterTax(raw: SalaryAfterTaxInputs): SalaryAfterT
   const grossAnnual = toDecimal(parsed.grossAnnualSalaryUSD, { maxDp: 2 });
   if (grossAnnual.lt(0)) throw new Error("Salary must be 0 or greater");
 
-  const taxable = Decimal.max(grossAnnual.sub(stdDeduction), new Decimal(0));
+  const status = parsed.filingStatus;
   const stdDeduction = new Decimal(data.federal.standardDeduction[status] ?? 0);
-  const taxable = grossAnnual.sub(stdDeduction).max(0);
   const brackets = data.federal.brackets[status] ?? [];
-  const federal = progressiveTax(taxable, brackets);
+  const federal = progressiveTax(grossAnnual.sub(stdDeduction).max(0), brackets);
 
   const fica = ficaTax(grossAnnual);
 
@@ -65,7 +64,7 @@ export function calculateSalaryAfterTax(raw: SalaryAfterTaxInputs): SalaryAfterT
   const stateTax = grossAnnual.mul(stateRate);
 
   const totalTax = federal.add(fica).add(stateTax);
-  const netAnnual = Decimal.max(grossAnnual.sub(totalTax), new Decimal(0));
+  const netAnnual = grossAnnual.sub(totalTax).max(0);
   const netMonthly = netAnnual.div(12);
   const effective = grossAnnual.eq(0) ? new Decimal(0) : totalTax.div(grossAnnual);
 
