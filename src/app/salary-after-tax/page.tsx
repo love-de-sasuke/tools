@@ -1,14 +1,9 @@
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { buildMetadata, jsonLdFaqPage, jsonLdSoftwareApp, jsonLdWebPage } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 import { DisclaimerNotice } from "@/components/DisclaimerNotice";
 import { US_STATES } from "@/config/constants";
-
-const SalaryAfterTaxOverviewTool = dynamic(
-  () => import("./components/SalaryAfterTaxOverviewTool").then((m) => m.SalaryAfterTaxOverviewTool),
-  { ssr: false, loading: () => <div className="card p-6">Loading calculator…</div> }
-);
+import { SalaryAfterTaxOverviewTool } from "./components/SalaryAfterTaxOverviewTool";
 
 export const metadata = buildMetadata({
   title: "Salary After Tax Calculator (USA by State)",
