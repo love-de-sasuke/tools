@@ -16,6 +16,26 @@ export type InvestmentResult = {
   annualReturnRate: string;
 };
 
+export type InvestmentPoint = { month: number; dateISO: string; valueUSD: number; contributedUSD: number };
+
+function addMonthsUTC(date: Date, months: number): Date {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + months;
+  const day = d.getUTCDate();
+  const candidate = new Date(Date.UTC(year, month, 1));
+  const lastDay = new Date(Date.UTC(candidate.getUTCFullYear(), candidate.getUTCMonth() + 1, 0)).getUTCDate();
+  candidate.setUTCDate(Math.min(day, lastDay));
+  return candidate;
+}
+
+function toISODateUTC(date: Date): string {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function calculateInvestmentReturn(raw: unknown): InvestmentResult {
   const parsed = InvestmentSchema.parse(raw);
 
@@ -49,3 +69,42 @@ export function calculateInvestmentReturn(raw: unknown): InvestmentResult {
   };
 }
 
+export function calculateInvestmentSeries(raw: unknown, opts?: { startDateISO?: string; sampleEveryMonths?: number }) {
+  const parsed = InvestmentSchema.parse(raw);
+  const principal = toDecimal(parsed.initialPrincipal, { maxDp: 2 });
+  const apr = toDecimal(parsed.annualReturnRatePercent, { maxDp: 6 }).div(100);
+  const years = toDecimal(parsed.years, { maxDp: 6 });
+  const contrib = parsed.monthlyContribution ? toDecimal(parsed.monthlyContribution, { maxDp: 2 }) : new Decimal(0);
+
+  const months = years.mul(12).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
+  const r = apr.div(12);
+  const startDate = opts?.startDateISO ? new Date(`${opts.startDateISO}T00:00:00.000Z`) : new Date();
+  const sampleEvery = Math.max(1, opts?.sampleEveryMonths ?? 1);
+
+  let value = principal;
+  let contributed = principal;
+
+  const points: InvestmentPoint[] = [];
+  points.push({
+    month: 0,
+    dateISO: toISODateUTC(startDate),
+    valueUSD: value.toNumber(),
+    contributedUSD: contributed.toNumber()
+  });
+
+  for (let i = 1; i <= months.toNumber(); i++) {
+    value = value.mul(r.add(1)).add(contrib);
+    contributed = contributed.add(contrib);
+    if (i % sampleEvery === 0 || i === months.toNumber()) {
+      const date = addMonthsUTC(startDate, i);
+      points.push({
+        month: i,
+        dateISO: toISODateUTC(date),
+        valueUSD: value.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
+        contributedUSD: contributed.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber()
+      });
+    }
+  }
+
+  return points;
+}
