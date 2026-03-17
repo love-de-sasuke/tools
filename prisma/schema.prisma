@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  contentMd   String
+  authorName  String
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  faqItems BlogFaqItem[]
+
+  @@index([publishedAt])
+}
+
+model BlogFaqItem {
+  id        String   @id @default(cuid())
+  postId    String
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, sortOrder])
+}
+
+model CalculatorPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  formulaMd   String
+  disclaimerMd String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  faqItems CalculatorFaqItem[]
+}
+
+model CalculatorFaqItem {
+  id           String   @id @default(cuid())
+  calculatorId String
+  question     String
+  answer       String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  calculator CalculatorPage @relation(fields: [calculatorId], references: [id], onDelete: Cascade)
+
+  @@index([calculatorId, sortOrder])
+}
+

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "country": "USA",
+  "currency": "USD",
+  "year": 2024,
+  "filingStatuses": ["single"],
+  "federal": {
+    "standardDeduction": {
+      "single": 14600
+    },
+    "brackets": {
+      "single": [
+        { "upTo": 11600, "rate": 0.1 },
+        { "upTo": 47150, "rate": 0.12 },
+        { "upTo": 100525, "rate": 0.22 },
+        { "upTo": 191950, "rate": 0.24 },
+        { "upTo": 243725, "rate": 0.32 },
+        { "upTo": 609350, "rate": 0.35 },
+        { "upTo": null, "rate": 0.37 }
+      ]
+    }
+  },
+  "state": {
+    "model": "flat_or_none",
+    "rates": {
+      "AK": { "type": "none", "rate": 0 },
+      "AL": { "type": "flat", "rate": 0.05 },
+      "AR": { "type": "flat", "rate": 0.047 },
+      "AZ": { "type": "flat", "rate": 0.025 },
+      "CA": { "type": "flat", "rate": 0.09 },
+      "CO": { "type": "flat", "rate": 0.044 },
+      "CT": { "type": "flat", "rate": 0.055 },
+      "DC": { "type": "flat", "rate": 0.085 },
+      "DE": { "type": "flat", "rate": 0.055 },
+      "FL": { "type": "none", "rate": 0 },
+      "GA": { "type": "flat", "rate": 0.0549 },
+      "HI": { "type": "flat", "rate": 0.08 },
+      "IA": { "type": "flat", "rate": 0.044 },
+      "ID": { "type": "flat", "rate": 0.058 },
+      "IL": { "type": "flat", "rate": 0.0495 },
+      "IN": { "type": "flat", "rate": 0.0315 },
+      "KS": { "type": "flat", "rate": 0.052 },
+      "KY": { "type": "flat", "rate": 0.04 },
+      "LA": { "type": "flat", "rate": 0.0425 },
+      "MA": { "type": "flat", "rate": 0.05 },
+      "MD": { "type": "flat", "rate": 0.055 },
+      "ME": { "type": "flat", "rate": 0.0675 },
+      "MI": { "type": "flat", "rate": 0.0425 },
+      "MN": { "type": "flat", "rate": 0.068 },
+      "MO": { "type": "flat", "rate": 0.047 },
+      "MS": { "type": "flat", "rate": 0.05 },
+      "MT": { "type": "flat", "rate": 0.059 },
+      "NC": { "type": "flat", "rate": 0.0475 },
+      "ND": { "type": "flat", "rate": 0.025 },
+      "NE": { "type": "flat", "rate": 0.0584 },
+      "NH": { "type": "none", "rate": 0 },
+      "NJ": { "type": "flat", "rate": 0.064 },
+      "NM": { "type": "flat", "rate": 0.049 },
+      "NV": { "type": "none", "rate": 0 },
+      "NY": { "type": "flat", "rate": 0.064 },
+      "OH": { "type": "flat", "rate": 0.0375 },
+      "OK": { "type": "flat", "rate": 0.0475 },
+      "OR": { "type": "flat", "rate": 0.09 },
+      "PA": { "type": "flat", "rate": 0.0307 },
+      "RI": { "type": "flat", "rate": 0.055 },
+      "SC": { "type": "flat", "rate": 0.064 },
+      "SD": { "type": "none", "rate": 0 },
+      "TN": { "type": "none", "rate": 0 },
+      "TX": { "type": "none", "rate": 0 },
+      "UT": { "type": "flat", "rate": 0.0465 },
+      "VA": { "type": "flat", "rate": 0.0575 },
+      "VT": { "type": "flat", "rate": 0.06 },
+      "WA": { "type": "none", "rate": 0 },
+      "WI": { "type": "flat", "rate": 0.053 },
+      "WV": { "type": "flat", "rate": 0.05 },
+      "WY": { "type": "none", "rate": 0 }
+    }
+  }
+}
+
