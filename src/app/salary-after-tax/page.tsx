@@ -1,7 +1,14 @@
 import Link from "next/link";
-import { buildMetadata, jsonLdWebPage } from "@/lib/seo";
+import dynamic from "next/dynamic";
+import { buildMetadata, jsonLdFaqPage, jsonLdSoftwareApp, jsonLdWebPage } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
+import { DisclaimerNotice } from "@/components/DisclaimerNotice";
 import { US_STATES } from "@/config/constants";
+
+const SalaryAfterTaxOverviewTool = dynamic(
+  () => import("./components/SalaryAfterTaxOverviewTool").then((m) => m.SalaryAfterTaxOverviewTool),
+  { ssr: false, loading: () => <div className="card p-6">Loading calculator…</div> }
+);
 
 export const metadata = buildMetadata({
   title: "Salary After Tax Calculator (USA by State)",
@@ -11,14 +18,36 @@ export const metadata = buildMetadata({
 });
 
 export default function SalaryAfterTaxIndexPage() {
+  const faq = [
+    {
+      question: "Why are there separate pages per state?",
+      answer:
+        "Each state page uses the state’s tax model from our dataset and includes unique intro content and internal links for easy comparison."
+    },
+    {
+      question: "Is this a full payroll calculator?",
+      answer:
+        "No. This tool provides an annualized estimate using simplified assumptions. Real net pay depends on pay frequency, deductions, benefits, and withholding elections."
+    }
+  ];
+
   return (
     <>
       <JsonLd
-        data={jsonLdWebPage({
-          name: "Salary After Tax (USA by State)",
-          description: "State-by-state salary after tax pages with structured data and internal navigation.",
-          pathname: "/salary-after-tax"
-        })}
+        data={[
+          jsonLdWebPage({
+            name: "Salary After Tax (USA by State)",
+            description: "State-by-state salary after tax pages with structured data and internal navigation.",
+            pathname: "/salary-after-tax"
+          }),
+          jsonLdSoftwareApp({
+            name: "Salary After Tax Calculator (USA)",
+            description: "Estimate take-home pay with federal + payroll + simplified state income tax model.",
+            pathname: "/salary-after-tax",
+            applicationCategory: "FinanceApplication"
+          }),
+          jsonLdFaqPage({ items: faq })
+        ]}
       />
 
       <header className="space-y-3">
@@ -29,7 +58,12 @@ export default function SalaryAfterTaxIndexPage() {
         </p>
       </header>
 
-      <section className="mt-8 card p-6">
+      <div className="mt-6 space-y-6">
+        <DisclaimerNotice />
+        <SalaryAfterTaxOverviewTool />
+      </div>
+
+      <section className="mt-10 card p-6">
         <h2 className="text-lg font-semibold text-slate-900">All states</h2>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {US_STATES.map((s) => (
@@ -43,6 +77,18 @@ export default function SalaryAfterTaxIndexPage() {
           ))}
         </div>
       </section>
+
+      <article className="prose prose-slate mt-12 max-w-none">
+        <h2>FAQs</h2>
+        <dl>
+          {faq.map((f) => (
+            <div key={f.question} className="not-prose mt-4 rounded-2xl border border-slate-200 p-4">
+              <dt className="font-semibold text-slate-900">{f.question}</dt>
+              <dd className="mt-2 text-slate-700">{f.answer}</dd>
+            </div>
+          ))}
+        </dl>
+      </article>
     </>
   );
 }
