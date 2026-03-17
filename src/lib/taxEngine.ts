@@ -22,7 +22,6 @@ function progressiveTax(
   taxableIncome: Decimal,
   brackets: { upTo: number | null; rate: number }[]
 ): Decimal {
-  // ✅ FIXED: Decimal.max() static method
   let remaining = Decimal.max(taxableIncome, ZERO);
   let lastCap = ZERO;
   let tax = ZERO;
@@ -33,7 +32,6 @@ function progressiveTax(
     const cap = b.upTo == null ? null : new Decimal(b.upTo);
     const rate = new Decimal(b.rate);
 
-    // ✅ FIXED: Decimal.max() static method
     const slice =
       cap == null
         ? remaining
@@ -93,7 +91,6 @@ export function calculateSalaryAfterTax(
     data.federal.standardDeduction[status] ?? 0
   );
 
-  // ✅ FIXED: Decimal.max() static method
   const taxable = Decimal.max(
     grossAnnual.sub(stdDeduction),
     ZERO
@@ -116,7 +113,6 @@ export function calculateSalaryAfterTax(
 
   const totalTax = federal.add(fica).add(stateTax);
 
-  // ✅ FIXED: Decimal.max() static method
   const netAnnual = Decimal.max(
     grossAnnual.sub(totalTax),
     ZERO
